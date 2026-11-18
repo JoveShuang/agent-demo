@@ -7,13 +7,15 @@
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc",
-    "start": "node dist/main.js"
+    "start": "tsx src/client.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@hono/node-server": "^2.1.9",
     "dotenv": "^18.0.10",
+    "hono": "^4.13.19",
     "openai": "^7.57.0"
   },
   "devDependencies": {

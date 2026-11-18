@@ -29,7 +29,11 @@ const client = new OpenAI({
   baseURL: process.env.BASE_URL,
 });
 
-export async function callModel(messages: Message[], tools?: ToolDefinition[]) {
+export async function callModel(
+  messages: Message[],
+  tools?: ToolDefinition[],
+  onDelta?: (text: string) => void,
+) {
   const request = {
     model: 'deepseek-flash',
     messages,
@@ -47,20 +51,18 @@ export async function callModel(messages: Message[], tools?: ToolDefinition[]) {
   let finishReason: string | null = null;
 
   for await (const streamContent of stream) {
-    if (streamContent.choices.length === 0) {
-      continue;
-    }
-    if (streamContent.usage) {
-      usage = streamContent.usage;
-    }
     const currentDelta = streamContent.choices[0]?.delta;
-    finishReason = streamContent.choices[0]?.finish_reason;
+    if (!currentDelta) continue;
 
     if (currentDelta.content) {
       currentFullContent += currentDelta.content;
-      process.stdout.write(currentDelta.content || '');
-      logLine(currentDelta.content);
+      onDelta?.(currentDelta.content);
     }
+
+    if (streamContent.usage) {
+      usage = streamContent.usage;
+    }
+    finishReason = streamContent.choices[0]?.finish_reason;
 
     if (currentDelta.tool_calls && currentDelta.tool_calls.length > 0) {
       for (const deltaTool of currentDelta.tool_calls) {
